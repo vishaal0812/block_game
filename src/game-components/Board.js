@@ -11,24 +11,23 @@ export default function Board({ generateSequence }) {
    useEffect(() => {
       if (filledLines.length > 0) {
          const interval = setInterval(() => {
-            setFilledLines((prevFilledLines) => {
-               if (prevFilledLines.length > 0) {
-                  const index = prevFilledLines[0];
-                  setPlacedBlocks((prevPlacedBlocks) => {
-                     const updatedBlocks = { ...prevPlacedBlocks };
-                     delete updatedBlocks[index];
-                     return updatedBlocks;
-                  });
-                  return prevFilledLines.slice(1);
-               }
-               return prevFilledLines;
-            });
+            setFilledLines(preValue => {
+               const updateFilledLines = preValue.map(item => item.slice(1)).filter(item => item.length > 0);
+               return updateFilledLines;
+            })
+            setPlacedBlocks(preValue => {
+               const placedIndexes = preValue;
+               filledLines.forEach(filledLine => {
+                  delete placedIndexes[filledLine[0]];
+               })
+               return placedIndexes;
+            })
          }, 100);
-   
+         
          return () => clearInterval(interval);
-      }
-      if (filledLines.length === 0)
+      } else {
          checkGameOver(sequences, placedBlocks);
+      }
    }, [filledLines]);
    
 
@@ -71,12 +70,13 @@ export default function Board({ generateSequence }) {
                filledColumn.push(columnKey);
             }
          }
-         if (filledRow.length === 9 || filledColumn.length === 9) {         
-            if (filledRow.length === 9) {
-               filledLines.push(...filledRow);
-            }else {
-               filledLines.push(...filledColumn);
-            }
+         if (filledRow.length === 9) {
+            filledLines.push(filledRow);
+            setScore(score => score + 100);
+         }
+            
+         if (filledColumn.length === 9) {
+            filledLines.push(filledColumn);
             setScore(preScore => preScore + 100);
          }
       }
